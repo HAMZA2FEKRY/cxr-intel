@@ -14,7 +14,7 @@ class FAISSStore:
             return
             
         d = embeddings.shape[1]
-        self.index = faiss.IndexFlatL2(d)
+        self.index = faiss.IndexFlatIP(d)
         self.index.add(embeddings)
         self.metadata = metadata
 
