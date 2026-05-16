@@ -58,50 +58,40 @@ class MedGemmaGenerator:
             self.use_mock_mode = True
 
     def generate_report(self, image_path: str) -> str:
-        prompt = "You are a medical imaging assistant for an academic project. Generate a concise structured chest X-ray report with Findings and Impression. Do not invent unsupported findings."
-
         if self.use_mock_mode:
             return (
                 f"[MOCK REPORT for {os.path.basename(image_path)}]\n"
-                "Findings: The lungs are clear. No pleural effusion or pneumothorax.\n"
+                "Findings: The lungs are clear.\n"
                 "Impression: Normal chest radiograph."
             )
-
         try:
-            image = Image.open(image_path).convert("RGB")
-            inputs = self.processor(text=prompt, images=image, return_tensors="pt")
-            if torch.cuda.is_available():
-                inputs = inputs.to(self.model.device)
-            outputs = self.model.generate(**inputs, max_new_tokens=150)
-            generated_text = self.processor.batch_decode(outputs, skip_special_tokens=True)[0]
-            return generated_text.replace(prompt, "").strip()
+            from PIL import Image
+            img = Image.open(image_path).convert("RGB")
+            messages = [{"role": "user", "content": [
+                {"type": "image", "image": img},
+                {"type": "text", "text": "You are a radiologist. Generate a structured chest X-ray report with Findings and Impression sections."}
+            ]}]
+            out = self.pipe(messages, max_new_tokens=200)
+            return out[0]["generated_text"][-1]["content"]
         except Exception as e:
-            print(f"Generation failed: {e}")
-            return "[ERROR] Failed to generate report."
+            return f"[ERROR] {e}"
 
     def answer_question(self, image_path: str, question: str, context: str) -> str:
-        prompt = (
-            "You are a medical imaging assistant for an academic project. "
-            "Answer the question using only the provided image and retrieved context. "
-            "If evidence is insufficient, say so. Do not provide a final clinical diagnosis. "
-            f"Return a concise grounded answer.\nContext: {context}\nQuestion: {question}"
-        )
-
         if self.use_mock_mode:
-            return (
-                f"[MOCK ANSWER]\n"
-                f"Based on context: {context[:50]}...\n"
-                f"Answer to '{question}' is: It appears normal based on the mock context."
-            )
-
+            return f"[MOCK] Based on context: {context[:50]}..."
         try:
-            image = Image.open(image_path).convert("RGB")
-            inputs = self.processor(text=prompt, images=image, return_tensors="pt")
-            if torch.cuda.is_available():
-                inputs = inputs.to(self.model.device)
-            outputs = self.model.generate(**inputs, max_new_tokens=100)
-            generated_text = self.processor.batch_decode(outputs, skip_special_tokens=True)[0]
-            return generated_text.replace(prompt, "").strip()
+            from PIL import Image
+            img = Image.open(image_path).convert("RGB")
+            prompt = (
+                f"Context: {context[:300]}\n"
+                f"Question: {question}\n"
+                "Answer concisely based on the image and context:"
+            )
+            messages = [{"role": "user", "content": [
+                {"type": "image", "image": img},
+                {"type": "text", "text": prompt}
+            ]}]
+            out = self.pipe(messages, max_new_tokens=80)
+            return out[0]["generated_text"][-1]["content"]
         except Exception as e:
-            print(f"QA failed: {e}")
-            return "[ERROR] Failed to generate answer."
+            return f"[ERROR] {e}"
