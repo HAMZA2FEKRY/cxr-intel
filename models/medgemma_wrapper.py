@@ -47,7 +47,7 @@ class MedGemmaGenerator:
                 )
                 self.processor = None
                 self.model = None
-                 print("MedGemma loaded successfully.")
+                print("MedGemma loaded successfully.")
             except Exception as e:
                 print(f"Failed to load MedGemma: {e}")
                 self.use_mock_mode = True
