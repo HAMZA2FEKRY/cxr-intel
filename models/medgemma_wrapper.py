@@ -25,44 +25,31 @@ class MedGemmaGenerator:
         self.processor = None
         self.model = None
 
+        # CHANGE the __init__ loading section to:
         if not self.use_mock_mode and HAS_TRANSFORMERS:
             try:
-                # Get HF token from environment or cached file
                 hf_token = os.environ.get("HF_TOKEN", None)
                 if not hf_token:
                     token_path = os.path.expanduser("~/.cache/huggingface/token")
                     if os.path.exists(token_path):
                         with open(token_path, "r") as f:
                             hf_token = f.read().strip()
-
+        
                 print(f"Loading {self.model_id}...")
-
-                self.processor = AutoProcessor.from_pretrained(
-                    self.model_id,
-                    token=hf_token
+                from transformers import pipeline
+                import torch
+                self.pipe = pipeline(
+                    "image-text-to-text",
+                    model=self.model_id,
+                    token=hf_token,
+                    torch_dtype=torch.bfloat16,
+                    device_map="auto"
                 )
-
-                if torch.cuda.is_available():
-                    self.model = AutoModelForImageTextToText.from_pretrained(
-                        self.model_id,
-                        token=hf_token,
-                        device_map="auto",
-                        torch_dtype=torch.float16
-                    )
-                else:
-                    # CPU mode — float32, no device_map, low memory usage
-                    self.model = AutoModelForImageTextToText.from_pretrained(
-                        self.model_id,
-                        token=hf_token,
-                        torch_dtype=torch.float32,
-                        low_cpu_mem_usage=True
-                    )
-
-                print("MedGemma loaded successfully.")
-
+                self.processor = None
+                self.model = None
+                 print("MedGemma loaded successfully.")
             except Exception as e:
                 print(f"Failed to load MedGemma: {e}")
-                print("Falling back to mock mode.")
                 self.use_mock_mode = True
         else:
             if not HAS_TRANSFORMERS:
