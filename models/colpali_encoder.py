@@ -71,15 +71,15 @@ class ColPaliEncoder:
     def encode_query(self, image_path: str, question: str | None = None) -> np.ndarray:
         if self.use_mock_mode:
             return np.random.rand(1, 128).astype('float32')
-            
         import torch
         from PIL import Image
         try:
-            query_text = question if question else "What is in this image?"
-            inputs = self.processor(text=query_text, return_tensors="pt").to(self.device)
+            img = Image.open(image_path).convert('RGB')
+            batch = self.processor.process_images([img]).to(self.device)
             with torch.no_grad():
-                embeddings = self.model(**inputs).embeddings
-            return embeddings.mean(dim=1).cpu().numpy().astype('float32')
+                emb = self.model(**batch).mean(dim=1)
+                emb = emb / emb.norm(dim=-1, keepdim=True)
+            return emb.cpu().float().numpy()
         except Exception as e:
             print(f"ColPali query encoding failed: {e}")
             return np.random.rand(1, 128).astype('float32')
