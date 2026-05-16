@@ -1,0 +1,13 @@
+Model,Metric,Score
+MedGemma (Report Generation),ROUGE-L,0.1734689132538882
+MedGemma (Report Generation),BLEU,0.02318542139768504
+CLIP Retriever,Retrieval@1,0.018518518518518517
+CLIP Retriever,Retrieval@3,0.05555555555555555
+CLIP Retriever,Retrieval@5,0.09259259259259259
+COLPALI Retriever,Retrieval@1,0.018518518518518517
+COLPALI Retriever,Retrieval@3,0.07407407407407407
+COLPALI Retriever,Retrieval@5,0.09259259259259259
+CLIP + MedGemma QA,Exact Match,0.0
+CLIP + MedGemma QA,Token Similarity,0.2569761904761905
+ColPali + MedGemma QA,Exact Match,0.0
+ColPali + MedGemma QA,Token Similarity,0.2563095238095238

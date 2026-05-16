@@ -1,0 +1,19 @@
+dataset:
+  kaggle_slug: simhadrisadaram/mimic-cxr-dataset
+  raw_dir: data/raw/mimic_cxr
+  raw_train_csv: data/raw/mimic_cxr/mimic_cxr_aug_train.csv
+  processed_dir: data/processed
+  sample_size: 1000
+  sample_metadata_path: data/samples/sample_metadata.csv
+columns:
+  report_candidates: ["text", "report", "findings", "impression"]
+  image_candidates: ["image_path", "path", "filename", "image", "dicom_id"]
+  id_candidates: ["image_id", "subject_id", "study_id", "dicom_id", "id"]
+rag:
+  top_k: 3
+  index_dir: rag/indexes
+models:
+  medgemma_model_id: google/medgemma-1.5-4b-it
+  use_mock_mode: false
+app:
+  title: CXR-Intel
