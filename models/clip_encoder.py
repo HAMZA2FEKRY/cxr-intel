@@ -63,14 +63,16 @@ class CLIPEncoder:
     def encode_query(self, image_path: str, question: str | None = None) -> np.ndarray:
         if self.use_mock_mode:
             return np.random.rand(1, 512).astype('float32')
-            
         import torch
         from PIL import Image
         try:
-            query_text = question if question else "A chest x-ray image."
-            inputs = self.processor(text=[query_text], return_tensors="pt").to(self.device)
+            img = Image.open(image_path).convert('RGB')
+            inputs = self.processor(
+                images=img, 
+                return_tensors="pt"
+            ).to(self.device)
             with torch.no_grad():
-                embeddings = self.model.get_text_features(**inputs)
+                embeddings = self.model.get_image_features(**inputs)
             return embeddings.cpu().numpy().astype('float32')
         except Exception as e:
             print(f"CLIP query encoding failed: {e}")
